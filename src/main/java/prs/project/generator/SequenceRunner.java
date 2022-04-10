@@ -1,15 +1,6 @@
 package prs.project.generator;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,32 +9,20 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import prs.project.checker.Ledger;
 import prs.project.controllers.Settings;
 import prs.project.model.Product;
 import prs.project.model.Warehouse;
 import prs.project.status.ReplyToAction;
-import prs.project.task.Akcja;
-import prs.project.task.SterowanieAkcja;
-import prs.project.task.Wycena;
-import prs.project.task.WycenaAkcje;
-import prs.project.task.Wydarzenia;
-import prs.project.task.WydarzeniaAkcje;
-import prs.project.task.Zamowienia;
-import prs.project.task.ZamowieniaAkcje;
-import prs.project.task.Zaopatrzenie;
-import prs.project.task.ZaopatrzenieAkcje;
+import prs.project.task.*;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Stream;
 
 @Slf4j
-@Service
 public class SequenceRunner {
-
-    @Autowired
-    Ledger ledger;
 
     Settings settings;
     List<Akcja> akcje = new ArrayList<>();
@@ -54,11 +33,14 @@ public class SequenceRunner {
     EnumMap<Product, Long> sprzedaz = new EnumMap(Product.class);
     EnumMap<Product, Long> rezerwacje = new EnumMap(Product.class);
     Long promoLicznik = 0L;
+    Ledger ledger;
+    Thread thread;
 
-    public SequenceRunner(Settings settings, List<Akcja> akcje) {
+    public SequenceRunner(Settings settings, List<Akcja> akcje, Ledger ledger) {
+        this.ledger = ledger;
         this.settings = settings;
         this.akcje = akcje;
-        Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p,0L));
+        Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
         Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
 
         mojeTypy.addAll(Wycena.valueOf(settings.getWycena()).getAkceptowane());
@@ -66,7 +48,7 @@ public class SequenceRunner {
         mojeTypy.addAll(Zaopatrzenie.valueOf(settings.getZaopatrzenie()).getAkceptowane());
         mojeTypy.addAll(Wydarzenia.valueOf(settings.getWydarzenia()).getAkceptowane());
         mojeTypy.addAll(Arrays.asList(SterowanieAkcja.values()));
-        Thread thread = new Thread(() ->
+        thread = new Thread(() ->
         {
             while (active) {
                 threadProcess();
@@ -84,8 +66,8 @@ public class SequenceRunner {
     }
 
     public void threadProcess() {
-        if (!kolejka.isEmpty()) {
-            Akcja akcja = kolejka.pollFirst();
+        Akcja akcja = kolejka.pollFirst();
+        if (akcja != null) {
             ReplyToAction odpowiedz = procesujAkcje(akcja);
             try {
                 wyslijOdpowiedzLokalnie(odpowiedz);
@@ -119,10 +101,10 @@ public class SequenceRunner {
         }
 
         if (WydarzeniaAkcje.RAPORT_SPRZEDAŻY.equals(akcja.getTyp())) {
-            odpowiedz.setRaportSprzedaży(sprzedaz);
+            odpowiedz.setRaportSprzedaży(sprzedaz.clone());
         }
         if (WydarzeniaAkcje.INWENTARYZACJA.equals(akcja.getTyp())) {
-            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
+            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy().clone());
         }
         if (WydarzeniaAkcje.WYCOFANIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), -9999999L);
@@ -195,7 +177,7 @@ public class SequenceRunner {
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             odpowiedz.setZebraneZaopatrzenie(true);
-            if(magazyn.getStanMagazynowy().get(akcja.getProduct()) >= 0) {
+            if (magazyn.getStanMagazynowy().get(akcja.getProduct()) >= 0) {
                 magazyn.getStanMagazynowy().put(akcja.getProduct(), naMagazynie + akcja.getLiczba());
             }
         }
@@ -205,7 +187,7 @@ public class SequenceRunner {
             akcja.getGrupaProduktów().entrySet().stream()
                     .forEach(produkt -> {
                         Long naMagazynie = magazyn.getStanMagazynowy().get(produkt.getKey());
-                        if(magazyn.getStanMagazynowy().get(akcja.getProduct()) >= 0) {
+                        if (magazyn.getStanMagazynowy().get(produkt.getKey()) >= 0) {
                             magazyn.getStanMagazynowy().put(produkt.getKey(), naMagazynie + produkt.getValue());
                         }
                     });
@@ -214,6 +196,11 @@ public class SequenceRunner {
         if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(akcja.getTyp())) {
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
             odpowiedz.setGrupaProduktów(magazyn.getCeny());
+            magazyn = new Warehouse();
+            Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
+            Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
+            Long promoLicznik = 0L;
+            ledger.evaluateAll();
         }
         return odpowiedz;
     }
@@ -231,7 +218,7 @@ public class SequenceRunner {
         post.setHeader("Content-type", "application/json");
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
-                CloseableHttpResponse response = httpClient.execute(post)) {
+             CloseableHttpResponse response = httpClient.execute(post)) {
 
             HttpEntity rEntity = response.getEntity();
             if (rEntity != null) {
@@ -243,27 +230,28 @@ public class SequenceRunner {
     }
 
     public void wyslijOdpowiedzLokalnie(ReplyToAction odpowiedz) throws IOException {
+        odpowiedz.setStudentId(settings.getNumerIndeksu());
         try {
             ledger.addReplySequencer(odpowiedz);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if(SterowanieAkcja.ZAMKNIJ_SKLEP.equals(odpowiedz.getTyp())) {
-            try {
-                ledger.evaluateAll();
-            } catch(AssertionError e) {
-                e.printStackTrace();
-            }
-            Warehouse magazyn = new Warehouse();
-            EnumMap<Product, Long> sprzedaz = new EnumMap(Product.class);
-            EnumMap<Product, Long> rezerwacje = new EnumMap(Product.class);
+        if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(odpowiedz.getTyp())) {
+
+            magazyn = new Warehouse();
             Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
             Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
 
-
             Long promoLicznik = 0L;
-            ledger.clear();
+            stop();
         }
+    }
+
+    private void stop() {
+
+        log.info("Zamykam " + Thread.currentThread().getThreadGroup().getParent().activeCount());
+
+        active = false;
     }
 }
 

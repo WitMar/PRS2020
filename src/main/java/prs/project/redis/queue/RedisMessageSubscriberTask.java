@@ -21,19 +21,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 public class RedisMessageSubscriberTask implements MessageListener {
 
     ParallelExecutor parallelExecutor;
-    SequenceRunner sequenceRunner;
 
     public void onMessage(Message message, byte[] pattern) {
-        JsonMapper mapper = new JsonMapper();
-        try {
-            parallelExecutor.process(mapper.readValue(message.toString(), Akcja.class));
-            sequenceRunner.process(mapper.readValue(message.toString(), Akcja.class));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        log.info("Message received: " + message.toString());
     }
 }

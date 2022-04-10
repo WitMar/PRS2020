@@ -1,7 +1,7 @@
 ustawienia:
   numerIndeksu: 287046
-  wycena: "CENY_BEZ_ZMIAN"
-  zamowienia: "POJEDYNCZE"
-  zaopatrzenie: "POJEDYNCZE"
-  wydarzenia: "WYCOFANIE"
+  wycena: "CENA_ZMIENNA"
+  zamowienia: "GRUPOWE"
+  zaopatrzenie: "GRUPOWE"
+  wydarzenia: "RAPORT_SPRZEDAŻY"
   liczbaZadan: 100

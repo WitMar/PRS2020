@@ -28,8 +28,7 @@ public class RedisConfig {
 
     @Autowired
     ParallelExecutor parallelExecutor;
-    @Autowired
-    SequenceRunner sequenceRunner;
+
     @Autowired
     Settings settings;
 
@@ -54,7 +53,7 @@ public class RedisConfig {
 
     @Bean(name = "listenerTask")
     MessageListenerAdapter messageListenerTask() {
-        return new MessageListenerAdapter(new RedisMessageSubscriberTask(parallelExecutor, sequenceRunner));
+        return new MessageListenerAdapter(new RedisMessageSubscriberTask(parallelExecutor));
     }
 
     @Bean(name = "containerTask")

@@ -131,10 +131,10 @@ public class ParallelExecutor {
         }
 
         if (WydarzeniaAkcje.RAPORT_SPRZEDAŻY.equals(akcja.getTyp())) {
-            odpowiedz.setRaportSprzedaży(sprzedaz);
+            odpowiedz.setRaportSprzedaży(sprzedaz.clone());
         }
         if (WydarzeniaAkcje.INWENTARYZACJA.equals(akcja.getTyp())) {
-            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
+            odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy().clone());
         }
         if (WydarzeniaAkcje.WYCOFANIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), -9999999L);
@@ -217,7 +217,7 @@ public class ParallelExecutor {
             akcja.getGrupaProduktów().entrySet().stream()
                     .forEach(produkt -> {
                         Long naMagazynie = magazyn.getStanMagazynowy().get(produkt.getKey());
-                        if(magazyn.getStanMagazynowy().get(akcja.getProduct()) >= 0) {
+                        if(magazyn.getStanMagazynowy().get(produkt.getKey()) >= 0) {
                             magazyn.getStanMagazynowy().put(produkt.getKey(), naMagazynie + produkt.getValue());
                         }
                     });
@@ -226,6 +226,10 @@ public class ParallelExecutor {
         if (SterowanieAkcja.ZAMKNIJ_SKLEP.equals(akcja.getTyp())) {
             odpowiedz.setStanMagazynów(magazyn.getStanMagazynowy());
             odpowiedz.setGrupaProduktów(magazyn.getCeny());
+            magazyn = new Warehouse();
+            Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
+            Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
+            Long promoLicznik = 0L;
         }
         return odpowiedz;
     }
