@@ -60,7 +60,7 @@ public class Ledger {
         if (!pattern.containsKey(odpowiedz.getStudentId())) {
 
             pattern.put(odpowiedz.getStudentId(), new ConcurrentLinkedQueue<>());
-            points.put(odpowiedz.getStudentId(), 0L);
+
 
         }
 
@@ -77,9 +77,17 @@ public class Ledger {
         evaluate.incrementAndGet();
         log.info("Zakonczono " + evaluate);
         if(evaluate.get() == 40) {
+            try {
+                Thread.currentThread().sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             evaluate.set(0L);
             logActions.keySet().stream().forEach(indeks -> {
                 try {
+                    if(!points.containsKey(indeks)) {
+                        points.put(indeks, 0L);
+                    }
                     long czasStudent = Duration.between(logActions.get(indeks).peek().getTimestamp(), logActions.get(indeks).stream().collect(Collectors.toList()).get(logActions.get(indeks).size() - 1).getTimestamp())
                             .toSeconds();
                     log.warn(indeks + " czas " + czasStudent);
@@ -146,7 +154,7 @@ public class Ledger {
                 }
             });
 
-            log.info(points.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getValue))
+            log.info(points.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
                     .map(p -> "Punkty " + p.getValue() + " " + p.getKey() + "|")
                     .collect(Collectors.joining(" ")));
             clear();

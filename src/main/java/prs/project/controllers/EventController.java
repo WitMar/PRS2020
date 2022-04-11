@@ -17,10 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import prs.project.checker.Ledger;
 import prs.project.generator.Generator;
 import prs.project.generator.SequenceRunner;
@@ -38,9 +35,10 @@ public class EventController {
     RedisMessagePublisherTask redisMessagePublisher;
     Settings settings;
 
-    @GetMapping(value = "/generate")
-    public ResponseEntity<String> generateActions() throws URISyntaxException {
-        Generator generator = new Generator(settings.getLiczbaZadan());
+    @GetMapping(value = "/generate/{nr}")
+    public ResponseEntity<String> generateActions(@PathVariable Long nr) throws URISyntaxException {
+        if(nr==null) nr = settings.getLiczbaZadan();
+        Generator generator = new Generator(nr);
         List<Akcja> akcje = generator.generate();
 
         akcje.forEach(akcja -> redisMessagePublisher.publish(akcja));
