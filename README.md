@@ -1,16 +1,20 @@
-## Spring Data Redis
+Aby wystartować musisz wyłaczyc w redis, po każdym restarcie
 
-### Relevant Articles:
-- [Introduction to Spring Data Redis](https://www.baeldung.com/spring-data-redis-tutorial)
-- [PubSub Messaging with Spring Data Redis](https://www.baeldung.com/spring-data-redis-pub-sub)
-- [An Introduction to Spring Data Redis Reactive](https://www.baeldung.com/spring-data-redis-reactive)
+systemctl restart redis
 
-### Build the Project with Tests Running
-```
-mvn clean install
-```
+redis-cli -p 8989
 
-### Run Tests Directly
-```
-mvn test
-```
+127.0.0.1:8989> CONFIG SET protected-mode no
+
+Connection from outside (tylko raz musi byc ustawione)
+
+Before (file /etc/redis/redis.conf) dodaj
+
+bind 127.0.0.1
+
+na koniec dodaj
+
+bind 0.0.0.0
+
+and run sudo service redis-server restart to restart the server. 
+If that's not the problem, you might want to check any firewalls that might block the access.
