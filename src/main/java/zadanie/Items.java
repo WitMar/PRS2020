@@ -1,4 +1,4 @@
-package shop;
+package zadanie;
 
 public enum Items {
     GARNEK,
