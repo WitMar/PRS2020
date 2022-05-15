@@ -1,3 +1,6 @@
 bluepy==1.3.0
 pygatt==3.2.0
 btlewrap==0.1.0
+kafka-python
+bson=0.5.10
+schedule

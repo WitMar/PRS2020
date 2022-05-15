@@ -3,7 +3,7 @@
 # use only lower case names here
 VALID_DEVICE_NAMES = ["flower mate", "flower care"]
 
-DEVICE_PREFIX = "C4:7C:8D:"
+DEVICE_PREFIX = "C4"
 
 
 def scan(backend, timeout=10):
@@ -11,6 +11,7 @@ def scan(backend, timeout=10):
 
     Note: this must be run as root!
     """
+    print(backend.scan_for_devices(timeout, 'hci0'))
     return [
         mac.upper()
         for (mac, name) in backend.scan_for_devices(timeout)

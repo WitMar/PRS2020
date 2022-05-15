@@ -5,6 +5,10 @@ import argparse
 import logging
 import re
 import sys
+import schedule
+import time
+from kafka import KafkaProducer
+from json import dumps
 
 from btlewrap import BluepyBackend, GatttoolBackend, PygattBackend, available_backends
 
@@ -32,6 +36,17 @@ def valid_miflora_mac(
 
 def poll(args):
     """Poll data from the sensor."""
+    job(args)
+    schedule.every(1).minutes.do(lambda: job(args))
+    while True:
+        schedule.run_pending()
+        print('ping')
+        time.sleep(60)
+
+
+def job(args):
+    producer = KafkaProducer(bootstrap_servers='localhost:29092',
+                             value_serializer=lambda x: dumps(x).encode('utf-8'))
     backend = _get_backend(args)
     poller = MiFloraPoller(args.mac, backend)
     print("Getting data from Mi Flora")
@@ -42,6 +57,11 @@ def poll(args):
     print("Light: {}".format(poller.parameter_value(MI_LIGHT)))
     print("Conductivity: {}".format(poller.parameter_value(MI_CONDUCTIVITY)))
     print("Battery: {}".format(poller.parameter_value(MI_BATTERY)))
+    data = [format(poller.parameter_value(MI_TEMPERATURE)), format(poller.parameter_value(MI_MOISTURE)), format(poller.parameter_value(MI_LIGHT)), format(poller.parameter_value(MI_CONDUCTIVITY)), format(poller.parameter_value(MI_BATTERY))]
+    print(data)
+    producer.send('xiaomi', data)
+    producer.flush()
+    producer.close()
 
 
 def scan(args):
@@ -56,14 +76,9 @@ def scan(args):
 
 def _get_backend(args):
     """Extract the backend class from the command line arguments."""
-    if args.backend == "gatttool":
-        backend = GatttoolBackend
-    elif args.backend == "bluepy":
-        backend = BluepyBackend
-    elif args.backend == "pygatt":
-        backend = PygattBackend
-    else:
-        raise Exception(f"unknown backend: {args.backend}")
+
+    backend = BluepyBackend
+
     return backend
 
 
