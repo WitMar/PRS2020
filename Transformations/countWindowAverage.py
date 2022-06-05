@@ -1,3 +1,4 @@
+
 from pyflink.common.typeinfo import Types
 from pyflink.datastream import StreamExecutionEnvironment, FlatMapFunction, RuntimeContext
 from pyflink.datastream.state import ValueStateDescriptor
@@ -39,5 +40,3 @@ env.from_collection([(1, 3), (1, 5), (1, 7), (1, 4), (1, 2)]) \
     .print()
 
 env.execute()
-
-# the printed output will be (1,4) and (1,5)
