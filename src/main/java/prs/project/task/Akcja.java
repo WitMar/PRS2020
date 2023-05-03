@@ -29,7 +29,6 @@ public class Akcja implements Serializable {
     Enum typ;
     Product product;
     Long liczba;
-    Long klientId;
     EnumMap<Product, Long> grupaProduktów;
     Long cena;
 

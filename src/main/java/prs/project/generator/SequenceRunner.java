@@ -36,6 +36,7 @@ import prs.project.task.ZamowieniaAkcje;
 import prs.project.task.Zaopatrzenie;
 import prs.project.task.ZaopatrzenieAkcje;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 @Slf4j
@@ -44,6 +45,8 @@ public class SequenceRunner {
 
     @Autowired
     Ledger ledger;
+    @Autowired
+    ObjectMapper jacksonObjectMapper;
 
     Settings settings;
     List<Akcja> akcje = new ArrayList<>();
@@ -103,7 +106,7 @@ public class SequenceRunner {
                 .build();
 
         if (WycenaAkcje.PODAJ_CENE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setCena(magazyn.getCeny().get(akcja.getProduct()));
             if (mojeTypy.contains(Wycena.PROMO_CO_10_WYCEN)) {
                 promoLicznik++;
@@ -113,7 +116,7 @@ public class SequenceRunner {
         }
         if (WycenaAkcje.ZMIEN_CENE.equals(akcja.getTyp())) {
             magazyn.getCeny().put(akcja.getProduct(), akcja.getCena());
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setCenaZmieniona(true);
             odpowiedz.setCena(akcja.getCena());
         }
@@ -126,17 +129,17 @@ public class SequenceRunner {
         }
         if (WydarzeniaAkcje.WYCOFANIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), -9999999L);
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setZrealizowaneWycofanie(true);
         }
         if (WydarzeniaAkcje.PRZYWROCENIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), 0L);
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setZrealizowanePrzywrócenie(true);
         }
 
         if (ZamowieniaAkcje.POJEDYNCZE_ZAMOWIENIE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -167,7 +170,7 @@ public class SequenceRunner {
             }
         }
         if (ZamowieniaAkcje.REZERWACJA.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -179,7 +182,7 @@ public class SequenceRunner {
             }
         }
         if (ZamowieniaAkcje.ODBIÓR_REZERWACJI.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = rezerwacje.get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -191,7 +194,7 @@ public class SequenceRunner {
         }
 
         if (ZaopatrzenieAkcje.POJEDYNCZE_ZAOPATRZENIE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             odpowiedz.setZebraneZaopatrzenie(true);
@@ -251,21 +254,17 @@ public class SequenceRunner {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if(SterowanieAkcja.ZAMKNIJ_SKLEP.equals(odpowiedz.getTyp())) {
-            try {
-                ledger.evaluate(settings.getNumerIndeksu());
-            } catch(AssertionError e) {
-                e.printStackTrace();
-            }
-            Warehouse magazyn = new Warehouse();
-            EnumMap<Product, Long> sprzedaz = new EnumMap(Product.class);
-            EnumMap<Product, Long> rezerwacje = new EnumMap(Product.class);
-            Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
-            Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
+    }
 
-            Long promoLicznik = 0L;
-            ledger.clear();
-        }
+    public void clear(){
+        Warehouse magazyn = new Warehouse();
+        EnumMap<Product, Long> sprzedaz = new EnumMap(Product.class);
+        EnumMap<Product, Long> rezerwacje = new EnumMap(Product.class);
+        Arrays.stream(Product.values()).forEach(p -> rezerwacje.put(p, 0L));
+        Arrays.stream(Product.values()).forEach(p -> sprzedaz.put(p, 0L));
+
+        Long promoLicznik = 0L;
+        ledger.clear();
     }
 }
 

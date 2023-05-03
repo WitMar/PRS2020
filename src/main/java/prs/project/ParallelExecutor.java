@@ -13,14 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import prs.project.checker.Ledger;
@@ -38,8 +30,6 @@ import prs.project.task.Zamowienia;
 import prs.project.task.ZamowieniaAkcje;
 import prs.project.task.Zaopatrzenie;
 import prs.project.task.ZaopatrzenieAkcje;
-
-import com.fasterxml.jackson.databind.json.JsonMapper;
 
 @Service
 @Slf4j
@@ -119,7 +109,7 @@ public class ParallelExecutor {
                 .build();
 
         if (WycenaAkcje.PODAJ_CENE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setCena(magazyn.getCeny().get(akcja.getProduct()));
             if (mojeTypy.contains(Wycena.PROMO_CO_10_WYCEN)) {
                 promoLicznik.incrementAndGet();
@@ -130,7 +120,7 @@ public class ParallelExecutor {
         }
         if (WycenaAkcje.ZMIEN_CENE.equals(akcja.getTyp())) {
             magazyn.getCeny().put(akcja.getProduct(), akcja.getCena());
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setCenaZmieniona(true);
             odpowiedz.setCena(akcja.getCena());
         }
@@ -143,17 +133,17 @@ public class ParallelExecutor {
         }
         if (WydarzeniaAkcje.WYCOFANIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), -9999999L);
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setZrealizowaneWycofanie(true);
         }
         if (WydarzeniaAkcje.PRZYWROCENIE.equals(akcja.getTyp())) {
             magazyn.getStanMagazynowy().put(akcja.getProduct(), 0L);
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setZrealizowanePrzywrócenie(true);
         }
 
         if (ZamowieniaAkcje.POJEDYNCZE_ZAMOWIENIE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -184,7 +174,7 @@ public class ParallelExecutor {
             }
         }
         if (ZamowieniaAkcje.REZERWACJA.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -196,7 +186,7 @@ public class ParallelExecutor {
             }
         }
         if (ZamowieniaAkcje.ODBIÓR_REZERWACJI.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = rezerwacje.get(akcja.getProduct());
             if (naMagazynie >= akcja.getLiczba()) {
@@ -208,7 +198,7 @@ public class ParallelExecutor {
         }
 
         if (ZaopatrzenieAkcje.POJEDYNCZE_ZAOPATRZENIE.equals(akcja.getTyp())) {
-            odpowiedz.setProdukt(akcja.getProduct());
+            odpowiedz.setProduct(akcja.getProduct());
             odpowiedz.setLiczba(akcja.getLiczba());
             Long naMagazynie = magazyn.getStanMagazynowy().get(akcja.getProduct());
             odpowiedz.setZebraneZaopatrzenie(true);

@@ -1,7 +1,7 @@
 ustawienia:
-  numerIndeksu: 22222
+  numerIndeksu: 222222
   wycena: "CENA_ZMIENNA"
   zamowienia: "GRUPOWE"
   zaopatrzenie: "GRUPOWE"
   wydarzenia: "RAPORT_SPRZEDAŻY"
-  liczbaZadan: 20000
+  liczbaZadan: 200

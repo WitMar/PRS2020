@@ -30,10 +30,9 @@ public class ReplyToAction implements Serializable {
     Enum typ;
 
     Long id;
-    Product produkt;
+    Product product;
     Long liczba;
     Long cena;
-    Long wycena;
     EnumMap<Product, Long> grupaProduktów;
     EnumMap<Product, Long> stanMagazynów;
     EnumMap<Product, Long> raportSprzedaży;
@@ -43,5 +42,5 @@ public class ReplyToAction implements Serializable {
     Boolean zrealizowaneWycofanie;
     Boolean zebraneZaopatrzenie;
     Long studentId;
-    LocalDateTime timestamp;
+    Long timestamp;
 }

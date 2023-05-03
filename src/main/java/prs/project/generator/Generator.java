@@ -56,6 +56,7 @@ public class Generator {
         });
 
         actions.add(Akcja.builder()
+                .id(numberOfActions)
                 .typ(SterowanieAkcja.ZAMKNIJ_SKLEP)
                 .build());
 
