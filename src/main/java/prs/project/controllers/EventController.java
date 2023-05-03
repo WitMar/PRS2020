@@ -37,6 +37,9 @@ public class EventController {
 
         akcje.forEach(akcja -> {
             parallelExecutor.process(akcja);
+        });
+
+        akcje.forEach(akcja -> {
             sequenceRunner.process(akcja);
         });
 

@@ -52,7 +52,7 @@ public class Ledger {
         ConcurrentLinkedQueue<ReplyToAction> list = logActions.get(odpowiedz.getStudentId());
         list.add(odpowiedz);
 
-        Thread.sleep(100);
+        //Thread.sleep(10);
 
     }
 
@@ -60,7 +60,7 @@ public class Ledger {
         odpowiedz.setTimestamp(LocalDateTime.now());
         pattern.add(odpowiedz);
 
-        Thread.sleep(100);
+        //Thread.sleep(100);
 
     }
 

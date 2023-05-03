@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 public class EnumDeserializer extends JsonDeserializer<Enum> {
 
     /**
-     *Gender code when parsing JSON(Integer value)To a HumanSex object.
+     *Gender code when parsing JSON(Integer value)To a Human object.
      */
     @Override
     public Enum deserialize(JsonParser parser, DeserializationContext context) throws IOException {

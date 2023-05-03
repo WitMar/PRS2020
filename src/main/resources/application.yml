@@ -4,7 +4,4 @@ ustawienia:
   zamowienia: "GRUPOWE"
   zaopatrzenie: "GRUPOWE"
   wydarzenia: "RAPORT_SPRZEDAŻY"
-  liczbaZadan: 200
-  redisHost: "192.168.50.178"
-  redisPort: 8989
-  activeRedis: false
+  liczbaZadan: 20000

@@ -239,31 +239,6 @@ public class ParallelExecutor {
         return odpowiedz;
     }
 
-    public void wyslijOdpowiedz(ReplyToAction odpowiedz) throws IOException {
-        odpowiedz.setStudentId(settings.getNumerIndeksu());
-        HttpPost post = new HttpPost("http://"+settings.getRedisHost()+":8080/action/log");
-
-        JsonMapper mapper = new JsonMapper();
-        String json = mapper.writeValueAsString(odpowiedz);
-
-        StringEntity requestEntity = new StringEntity(
-                json,
-                ContentType.APPLICATION_JSON);
-        post.setEntity(requestEntity);
-        post.setHeader("Accept", "application/json");
-        post.setHeader("Content-type", "application/json");
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-                CloseableHttpResponse response = httpClient.execute(post)) {
-
-            HttpEntity rEntity = response.getEntity();
-            if (rEntity != null) {
-                // return it as a String
-                String result = EntityUtils.toString(rEntity);
-            }
-        }
-    }
-
     public void wyslijOdpowiedzLokalnie(ReplyToAction odpowiedz) throws IOException {
         odpowiedz.setStudentId(settings.getNumerIndeksu());
         try {
